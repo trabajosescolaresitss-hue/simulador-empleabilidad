@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulador de Empleabilidad</title>
+<style>
+body{font-family:Arial,sans-serif;background:#f4f6f9;max-width:1000px;margin:auto;padding:20px}
+.card{background:#fff;padding:15px;margin:12px 0;border-radius:10px;box-shadow:0 2px 5px rgba(0,0,0,.1)}
+h1{text-align:center;color:#0b4f8a}.question{font-weight:bold}
+button{background:#0b4f8a;color:#fff;border:none;padding:10px 15px;border-radius:6px;cursor:pointer;margin:5px}
+input[type=text]{width:100%;padding:8px}.resultado{display:none;padding:20px;border-radius:10px;margin-top:20px}
+.alto{background:#d4edda}.medio{background:#fff3cd}.bajo{background:#f8d7da}
+</style>
+</head>
+<body>
+<h1>Diagnóstico de Empleabilidad</h1>
+<div class='card'>
+<label>Nombre completo:</label><input type='text' id='nombre'>
+<label>Grupo:</label><input type='text' id='grupo'>
+<label>Fecha:</label><input type='text' id='fecha' readonly>
+</div>
+<form id='quiz'></form>
+<div style='text-align:center'><button type='button' onclick='evaluar()'>Obtener diagnóstico</button></div>
+<div id='resultado' class='resultado'></div>
+<script>
+document.getElementById('fecha').value=new Date().toLocaleDateString('es-MX');
+const preguntas=[
+['trabajo','Tu equipo obtuvo éxito y participaste poco.',['Acepto todo el mérito',1],['Reconozco a quien trabajó más',3],['No comento nada',2]],
+['adapt','Debes aprender una herramienta nueva.',['La evito',1],['Busco tutoriales y practico',3],['Espero ayuda',2]],
+['com','Notas un error en una reunión.',['Lo comunico con respeto',3],['No digo nada',1],['Espero que otro lo diga',2]],
+['resp','Recibes una crítica constructiva.',['La ignoro',1],['La analizo para mejorar',3],['La escucho parcialmente',2]],
+['lider','Debes coordinar una actividad.',['Acepto y organizo',3],['La evito',1],['Lo hago con ayuda',2]],
+['resp','Tienes varias tareas pendientes.',['Las pospongo',1],['Hago un plan',3],['Improviso',2]],
+['com','En una discusión de equipo.',['Escucho y propongo',3],['Guardo silencio',2],['Interrumpo',1]],
+['adapt','No sabes resolver algo.',['Investigo opciones',3],['Me rindo',1],['Pido ayuda inmediata',2]],
+['resp','Trabajas bajo presión.',['Mantengo calma',3],['Abandono',1],['Me estreso pero sigo',2]],
+['adapt','Cambian las instrucciones.',['Me adapto',3],['Me molesto',1],['Me cuesta pero intento',2]],
+['com','Debes exponer un tema.',['Me preparo y participo',3],['Leo sin practicar',2],['Intento evitarlo',1]],
+['lider','Hay un conflicto en el grupo.',['Busco acuerdos',3],['Lo ignoro',1],['Dejo que otros resuelvan',2]],
+['trabajo','Un compañero necesita apoyo.',['Lo apoyo sin hacerle la tarea',3],['No me involucro',1],['Le doy una sugerencia',2]],
+['resp','Respecto a la puntualidad.',['Siempre a tiempo',3],['A veces tarde',2],['Frecuentemente tarde',1]],
+['adapt','Nueva tecnología en clase.',['La exploro',3],['La evito',1],['Solo si me obligan',2]],
+['lider','Detectas mejora en un proceso.',['Propongo ideas',3],['No hago nada',1],['Espero instrucciones',2]],
+['trabajo','Proyecto colaborativo.',['Comparto información',3],['Trabajo aislado',1],['Solo cuando me piden',2]],
+['com','Recibes instrucciones poco claras.',['Pregunto y confirmo',3],['Asumo y sigo',2],['No hago nada',1]],
+['lider','Meta difícil.',['Persevero',3],['Renuncio rápido',1],['Lo intento poco tiempo',2]],
+['resp','Compromiso adquirido.',['Lo cumplo',3],['Lo olvido',1],['Lo cumplo parcialmente',2]]];
+const quiz=document.getElementById('quiz');
+preguntas.forEach((p,i)=>{let h=`<div class='card'><div class='question'>${i+1}. ${p[1]}</div>`;for(let j=2;j<p.length;j++){h+=`<label><input type='radio' name='q${i}' value='${p[j][1]}' data-cat='${p[0]}'> ${p[j][0]}</label><br>`;}h+='</div>';quiz.insertAdjacentHTML('beforeend',h);});
+function evaluar(){let nombre=nombreEl.value.trim(); if(!nombre){alert('Escribe tu nombre');return;} let total=0,cats={com:0,trabajo:0,lider:0,adapt:0,resp:0}; for(let i=0;i<preguntas.length;i++){let r=document.querySelector(`input[name=q${i}]:checked`); if(!r){alert('Responde todas las preguntas');return;} total+=parseInt(r.value); cats[r.dataset.cat]+=parseInt(r.value);} let nivel=''; let cls=''; if(total>=50){nivel='Alta';cls='alto';} else if(total>=35){nivel='Media';cls='medio';} else {nivel='En desarrollo';cls='bajo';}
+let fort=Object.entries(cats).sort((a,b)=>b[1]-a[1]); let res=document.getElementById('resultado'); res.className='resultado '+cls; res.style.display='block'; let texto=`Alumno: ${nombre}\nGrupo: ${grupo.value}\nPuntaje: ${total}/60\nNivel: ${nivel}`; window.resultadoTexto=texto; res.innerHTML=`<h2>Empleabilidad ${nivel}</h2><p><b>Alumno:</b> ${nombre}<br><b>Grupo:</b> ${grupo.value}<br><b>Puntaje:</b> ${total}/60</p><h3>Fortaleza principal:</h3><p>${fort[0][0]}</p><h3>Área a mejorar:</h3><p>${fort[fort.length-1][0]}</p><p>Plan de acción: establece una meta semanal para mejorar tu área de oportunidad.</p><button onclick='copiarResultado()'>📋 Copiar</button><button onclick='guardarResultado()'>💾 Guardar TXT</button>`;}
+const nombreEl=document.getElementById('nombre');
+function copiarResultado(){navigator.clipboard.writeText(document.getElementById('resultado').innerText);alert('Copiado');}
+function guardarResultado(){let b=new Blob([document.getElementById('resultado').innerText],{type:'text/plain'});let a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='Diagnostico_Empleabilidad.txt';a.click();}
+</script></body></html>
